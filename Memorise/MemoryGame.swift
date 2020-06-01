@@ -10,7 +10,7 @@
 
 import Foundation
 
-// Nesting structs inside strucs is generally a namespacing thing.
+// Nesting structs inside strucs is generally a name-spacing thing.
 // CardContent is a 'don't care'
 // var cards: Array<Card> is uninitialised, must be passed a value when the struct is.
 
