@@ -18,11 +18,18 @@ import SwiftUI
 // index is iteration var. ForEach isn't layout like ZStack.
 // Padding and spacing(in stacks) is generally kept standard.
 // if nor args then () can be removed, if last arg is {} cat sit outside.
+// Like model, you wouldn't use viewModel as a name.
+// viewModel is a pointer to the EmojiMemoryGame. It is created in the SceneDelegate file?
+
 struct ContentView: View {
+    var viewModel: EmojiMemoryGame
+    
     var body: some View {
         HStack {
-            ForEach(0..<4) { index in
-                CardView(isFaceUp: true)
+            ForEach(viewModel.cards) { card in
+                CardView(card: card).onTapGesture {
+                    self.viewModel.choose(card: card)
+                }
             }
         }
             .padding()
@@ -35,13 +42,14 @@ struct ContentView: View {
 // Factored out of encapsulation; out of HStack { ForEach }
 // isFaceUp has needs to be initialised when called.
 struct CardView: View {
-    var isFaceUp: Bool
+    var card: MemoryGame<String>.Card
     
     var body: some View {
-        ZStack { if isFaceUp {
+        ZStack {
+            if card.isFaceUp {
                 RoundedRectangle(cornerRadius: 10.0).fill(Color.white)
                 RoundedRectangle(cornerRadius: 10.0).stroke(lineWidth: 3)
-                Text("👻")
+                Text(card.content)
             } else {
                 RoundedRectangle(cornerRadius: 10.0).fill()
             }
@@ -49,9 +57,9 @@ struct CardView: View {
     }
 }
 
-// Connects to canvas preview.
+// Connects to canvas preview. Only used for development. Creates an EmojiMemoryGame on the fly?
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(viewModel: EmojiMemoryGame())
     }
 }
