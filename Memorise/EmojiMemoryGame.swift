@@ -40,7 +40,7 @@ class EmojiMemoryGame: ObservableObject {
     // MARK: - Access to the model.
     
     var cards: Array<MemoryGame<String>.Card> {
-        model.cards.shuffled() // for a1q2. Done here instead of view as no real logic should happen there, only display what it's told.
+        model.cards
     }
     
     // MARK: - Intent(s)

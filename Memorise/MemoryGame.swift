@@ -46,6 +46,9 @@ struct MemoryGame<CardContent> {
             cards.append(Card(content: content, id: pairIndex*2))
             cards.append(Card(content: content, id: pairIndex*2+1))
         }
+        // for a1q2. Done here instead of view as no real logic should happen there, only display what it's told.
+        // was originally done on model.cards in EmojiMemoryGameView but that caused a big that would shuffle the screen whenever a card was selected.
+        self.cards = cards.shuffled()
     }
     
     struct Card: Identifiable {
