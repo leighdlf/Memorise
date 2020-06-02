@@ -9,6 +9,7 @@
 import SwiftUI
 
 // EmojiMemoryGameView 'behaves' like a view. The rectangle of this view is the entire screen.
+// View is a protocol. 'Constrains and gains'.
 // var body is a property. some View type is any type that behaves like a view.
 // Each some View can only contain the same type of view. ie some is singular.
 // Think of views like legos. They can be put together. ZStack is a combiner view
@@ -22,10 +23,12 @@ import SwiftUI
 // Like model, you wouldn't use viewModel as a name.
 // viewModel is a pointer to the EmojiMemoryGame. It is created in the SceneDelegate file?
 
-// Cant create var i view builder (eg HStack), can be put in the var body, or better as a computed value in the struct.
+// Cant create var in view builder (eg HStack), can be put in the var body, or better as a computed value in the struct.
+// @ObservedObject says a var has an observable object in it. SwiftUI is smart and will only redraw the what is required; card changed.
+// @ObservedObject and @Published allows for reactive programming.
 
 struct EmojiMemoryGameView: View {
-    var viewModel: EmojiMemoryGame
+    @ObservedObject var viewModel: EmojiMemoryGame
     
     var body: some View {
         HStack {
@@ -37,7 +40,6 @@ struct EmojiMemoryGameView: View {
         }
             .padding()
             .foregroundColor(Color.orange)
-            .font(viewModel.cards.count < 10 ? Font.largeTitle : Font.title) // a1q5. Modifies the view we sent it to to draw that font. We 'declare'.
     }
 }
 
@@ -48,17 +50,38 @@ struct CardView: View {
     var card: MemoryGame<String>.Card
     
     var body: some View {
-        ZStack {
-            if card.isFaceUp {
-                RoundedRectangle(cornerRadius: 10.0).fill(Color.white)
-                RoundedRectangle(cornerRadius: 10.0).stroke(lineWidth: 3)
-                Text(card.content)
-            } else {
-                RoundedRectangle(cornerRadius: 10.0).fill()
-            }
-        }.aspectRatio(2/3, contentMode: .fit) // a1q3
-
+        GeometryReader { geometry in
+            self.body(for: geometry.size)
+        }
     }
+    
+    // Trick to overcome self. in geometry reader. Just pass geometry.size not whole body.
+    func body(for size: CGSize) -> some View {
+        ZStack {
+            if self.card.isFaceUp {
+                RoundedRectangle(cornerRadius: cornerRadius).fill(Color.white)
+                RoundedRectangle(cornerRadius: cornerRadius).stroke(lineWidth: lineWidth)
+                Text(self.card.content)
+            } else {
+                RoundedRectangle(cornerRadius: cornerRadius).fill()
+            }
+        }
+            .aspectRatio(2/3, contentMode: .fit) // a1q3
+            .font(Font.system(size: fontSize(for: size) ))
+    }
+    
+    // Mark: - Drawing Constants
+    // Fixes 'magic numbers'.
+    // CGFloat needs to defined to get over type inference.
+    
+    let cornerRadius: CGFloat = 10
+    let lineWidth: CGFloat = 3
+    let fontScalingFactor: CGFloat = 0.75
+    func fontSize(for size: CGSize) -> CGFloat {
+        min(size.width, size.height) * 0.75 // Sets its own font, better for encapsulation. One liner function is good for simplicity, as sometimes needed
+    }
+    
+    
 }
 
 // Connects to canvas preview. Only used for development. Creates an EmojiMemoryGame on the fly? Preview doesn't use SceneDelegate?
