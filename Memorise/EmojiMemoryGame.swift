@@ -18,7 +18,7 @@
 // private(set) isn't used. Access to model is done through a var?. Allows view model to interpret data (maybe process it).
 // Intents (like func choose()) allows views tell the model what it wants to do/happen?
 // ObservableObject is another protocol.
-// Protocols formalise how data structures behave; there functionality only.
+// Protocols formalise how data structures behave; they're functionality only.
 // @Published calls objectWillChange.send() when a model changes for each function. objectWillChange.send() can be added to func/intents if wanted/needed
 
 import SwiftUI

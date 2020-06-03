@@ -27,19 +27,20 @@ import SwiftUI
 // @ObservedObject says a var has an observable object in it. SwiftUI is smart and will only redraw the what is required; card changed.
 // @ObservedObject and @Published allows for reactive programming.
 
+// ZStack is a view builder or from one?
+
 struct EmojiMemoryGameView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
     
     var body: some View {
-        HStack {
-            ForEach(viewModel.cards) { card in
-                CardView(card: card).onTapGesture {
-                    self.viewModel.choose(card: card)
-                }
+        Grid(viewModel.cards) { card in
+            CardView(card: card).onTapGesture {
+                self.viewModel.choose(card: card)
             }
+            .padding(5)
         }
-            .padding()
-            .foregroundColor(Color.orange)
+        .padding()
+        .foregroundColor(Color.orange)
     }
 }
 
@@ -56,6 +57,8 @@ struct CardView: View {
     }
     
     // Trick to overcome self. in geometry reader. Just pass geometry.size not whole body.
+    // Look how it was originally done and changed in lecture 3.
+    // All Stack take ViewBuilder? Turns something into some View??
     func body(for size: CGSize) -> some View {
         ZStack {
             if self.card.isFaceUp {
@@ -63,10 +66,12 @@ struct CardView: View {
                 RoundedRectangle(cornerRadius: cornerRadius).stroke(lineWidth: lineWidth)
                 Text(self.card.content)
             } else {
-                RoundedRectangle(cornerRadius: cornerRadius).fill()
+                if !card.isMatched {    // Will not draw cards that have been matched. Will give an empty View.
+                    RoundedRectangle(cornerRadius: cornerRadius).fill()
+                }
             }
         }
-            .aspectRatio(2/3, contentMode: .fit) // a1q3
+            //.aspectRatio(2/3, contentMode: .fit) // a1q3
             .font(Font.system(size: fontSize(for: size) ))
     }
     

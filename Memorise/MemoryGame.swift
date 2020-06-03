@@ -18,23 +18,36 @@ import Foundation
 // var cards: Array<Card> is uninitialised, must be passed a value when the struct is.
 // therefore in func choose we flip the cards flips the card directly in the array. In structs only mutating funcs can change self.
 
-struct MemoryGame<CardContent> {
+struct MemoryGame<CardContent>  where CardContent: Equatable {
     var cards: Array<Card>
     
-    mutating func choose(card: Card) {
-        print("card chosen: \(card)")
-        let chosenIndex: Int = self.index(of: card)
-        self.cards[chosenIndex].isFaceUp = !self.cards[chosenIndex].isFaceUp
-    }
-    
-    func index(of card: Card) -> Int {
-        for index in 0..<self.cards.count {
-            if self.cards[index].id == card.id {
-                return index
+    // Calculates if there are two face up cards.
+    var indexOfOneAndOnlyOneFaceUpCard: Int? {
+        get { cards.indices.filter { cards[$0].isFaceUp }.only }
+        set {
+            for index in cards.indices {
+                cards[index].isFaceUp = index == newValue
             }
         }
-        return 0 // TODO: bogus! Needs to be fixed. What to be returned if nothing is found??
     }
+    
+    mutating func choose(card: Card) {
+        // if let makes this function do nothing if passed a nil.
+        // , is a sequential &&. Used commonly with if let.
+        print("card chosen: \(card)")
+        if let chosenIndex: Int = cards.firstIndex(matching: card), !self.cards[chosenIndex].isFaceUp, !cards[chosenIndex].isMatched {
+            if let potentialMatchIndex = indexOfOneAndOnlyOneFaceUpCard {
+                if cards[chosenIndex].content == cards[potentialMatchIndex].content {
+                    cards[chosenIndex].isMatched = true
+                    cards[potentialMatchIndex].isMatched = true
+                }
+                self.cards[chosenIndex].isFaceUp = true
+            } else {
+                indexOfOneAndOnlyOneFaceUpCard = chosenIndex
+            }
+        }
+    }
+    
     
     // Can have multiple ways of initialising.
     // Cards is initialised as an empty array.
@@ -52,7 +65,7 @@ struct MemoryGame<CardContent> {
     }
     
     struct Card: Identifiable {
-        var isFaceUp: Bool = true
+        var isFaceUp: Bool = false
         var isMatched: Bool = false
         var content: CardContent // Don't care type.
         var id: Int
