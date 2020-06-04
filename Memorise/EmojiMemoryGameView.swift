@@ -33,14 +33,37 @@ struct EmojiMemoryGameView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
     
     var body: some View {
-        Grid(viewModel.cards) { card in
-            CardView(card: card).onTapGesture {
-                self.viewModel.choose(card: card)
+        VStack(alignment: .center) {
+            // a2q7
+            Text("\(EmojiMemoryGame.themeName) Cards")
+                .font(Font.largeTitle)
+                .bold()
+            Text("Score: \(viewModel.score)")
+                .font(Font.title)
+            
+            Divider()
+            
+            Grid(viewModel.cards) { card in
+                CardView(card: card).onTapGesture {
+                    self.viewModel.choose(card: card)
+                }
+                .padding(5)
             }
-            .padding(5)
+            .padding()
+            .foregroundColor(EmojiMemoryGame.themeColor)
+            
+            Button(action: {
+                self.viewModel.newGame()
+            }) {
+                Text("New Game")
+                    .fontWeight(.bold)
+                    .padding()
+                    // a2 extra credit for the gradient.
+                    .background(Capsule().fill(
+                        LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing)))
+                    .foregroundColor(Color.white)
+            }
         }
-        .padding()
-        .foregroundColor(Color.orange)
     }
 }
 
@@ -67,12 +90,13 @@ struct CardView: View {
                 Text(self.card.content)
             } else {
                 if !card.isMatched {    // Will not draw cards that have been matched. Will give an empty View.
-                    RoundedRectangle(cornerRadius: cornerRadius).fill()
+                    RoundedRectangle(cornerRadius: cornerRadius).fill(
+                        LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing))
                 }
             }
         }
             //.aspectRatio(2/3, contentMode: .fit) // a1q3
-            .font(Font.system(size: fontSize(for: size) ))
+            .font(Font.system(size: fontSize(for: size)))
     }
     
     // Mark: - Drawing Constants
@@ -85,8 +109,6 @@ struct CardView: View {
     func fontSize(for size: CGSize) -> CGFloat {
         min(size.width, size.height) * 0.75 // Sets its own font, better for encapsulation. One liner function is good for simplicity, as sometimes needed
     }
-    
-    
 }
 
 // Connects to canvas preview. Only used for development. Creates an EmojiMemoryGame on the fly? Preview doesn't use SceneDelegate?

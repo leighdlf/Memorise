@@ -37,7 +37,7 @@ struct Grid<Item, ItemView>: View where Item: Identifiable, ItemView: View {  //
     
     // Offer the space the the children. Then position them in the grid layout.
     func body(for item: Item, in layout: GridLayout) -> some View {
-        let index = items.firstIndex(matching: item)!   // Immediately force unwrapps, turns index into an Int. Look into Grid and ViewBuilder from lecture 4.
+        let index = items.firstIndex(matching: item)!   // Immediately force unwraps, turns index into an Int. Look into Grid and ViewBuilder from lecture 4.
         return viewForItem(item)
             .frame(width: layout.itemSize.width, height: layout.itemSize.height)
             .position(layout.location(ofItemAt: index))

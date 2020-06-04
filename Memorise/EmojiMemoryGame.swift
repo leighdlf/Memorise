@@ -26,14 +26,46 @@ import SwiftUI
 class EmojiMemoryGame: ObservableObject {
     @Published private var model: MemoryGame<String> = EmojiMemoryGame.createMemoryGame()
     
+    // Default values
+    static var themeColor = Color.blue
+    static var themeName = ""
+    
     static func createMemoryGame() -> MemoryGame<String> {
-        let emojis: Array<String> = ["👻", "🎃", "🕷", "😈", "😱", "🙀", "🧙‍♂️", "🐱", "🍭", "🧚🏿‍♀️", "👹", "👺"].shuffled() // a1 extra credit
+        let theme = setGameTheme(theme: EmojiGameThemes.allCases.randomElement()!)
+        themeColor = theme.color
+        themeName = theme.name
+        // .shuffled() a1 extra credit
+        let emojis = theme.emojis.shuffled()
+        
         // Int.random() for a1q4
-        return MemoryGame<String>(numberOfPairsOfCards: Int.random(in: 2...5)) { pairIndex in
+        return MemoryGame<String>(numberOfPairsOfCards: theme.numberOfPairsOfCards) { pairIndex in
             return emojis[pairIndex] }
     }
+    
+    // a2q3. 
+    enum EmojiGameThemes: CaseIterable {
+        case halloween, sports, animals, faces, flags, food
+    }
+
+    static func setGameTheme(theme: EmojiGameThemes) -> (name: String, emojis: Array<String>, numberOfPairsOfCards: Int, color: Color) {
+        switch theme {
+        case .halloween:
+            return ("Halloween", ["👻", "🎃", "🕷", "😈", "😱", "🙀", "🧙‍♂️", "🏚", "🍭", "🧚🏿‍♀️", "👹", "👺"], Int.random(in: 2...5), Color.orange)
+        case .sports:
+            return ("Sports", ["⚽️", "🏏", "🏀", "🏈", "⚾️", "🏓", "🏒", "🎱", "🎳", "🏹", "🏸", "⛳️"], Int.random(in: 2...5), Color.blue)
+        case .animals:
+            return ("Animals", ["🐶", "🐱", "🦁", "🐭", "🦊", "🐰", "🐼", "🐮", "🐸", "🐨", "🐵", "🐷"], Int.random(in: 2...5), Color.pink)
+        case .faces:
+            return ("Faces", ["😀", "😩", "😭", "😡", "🥶", "😇", "😅", "🤣", "😨", "😐", "🙄", "🥴"], Int.random(in: 2...5), Color.yellow)
+        case .flags:
+            return ("Flags", ["🇦🇺", "🇺🇸", "🇬🇧", "🇨🇦", "🇮🇪", "🇳🇿", "🇿🇦", "🇯🇵", "🇨🇳", "🇲🇽", "🇮🇳", "🇧🇩"], 3, Color.gray)
+        case .food:
+            return ("Fruit", ["🍎", "🍌", "🍊", "🥭", "🍒", "🍑", "🍐", "🍋", "🍍", "🥝", "🍓", "🍇"], Int.random(in: 2...5), Color.green)
+        }
+    }
+
         
-    // Added by ObserableObject. Has func objectWillChange.send. Notifies things interested when model changes. Is hidden; don't need to add.
+    // Added by ObservableObject. Has func objectWillChange.send. Notifies things interested when model changes. Is hidden; don't need to add.
     // Therefore views looking at this model will update themselves.
 //    var objectWillChange: ObservableObjectPublisher
     
@@ -42,10 +74,18 @@ class EmojiMemoryGame: ObservableObject {
     var cards: Array<MemoryGame<String>.Card> {
         model.cards
     }
+    var score: Int {
+        model.score
+    }
     
     // MARK: - Intent(s)
     
     func choose(card: MemoryGame<String>.Card) {
         model.choose(card: card)
+    }
+    
+    // a2q6 with the button in the view model.
+    func newGame() {
+        self.model = EmojiMemoryGame.createMemoryGame()
     }
 }

@@ -21,7 +21,7 @@ import Foundation
 struct MemoryGame<CardContent>  where CardContent: Equatable {
     var cards: Array<Card>
     
-    // Calculates if there are two face up cards.
+    // Gets the index of a card if it is the only one face up.
     var indexOfOneAndOnlyOneFaceUpCard: Int? {
         get { cards.indices.filter { cards[$0].isFaceUp }.only }
         set {
@@ -31,19 +31,26 @@ struct MemoryGame<CardContent>  where CardContent: Equatable {
         }
     }
     
+    // a2q8+9+a2Extra credit along with code in the choose() func. Display of score is in the view.
+    var timeOfLastCardPick: Date = Date()
+    var score: Int = 0
+    
+    // if let makes this function do nothing if passed a nil.
+    // , is a sequential &&. Used commonly with if let.
     mutating func choose(card: Card) {
-        // if let makes this function do nothing if passed a nil.
-        // , is a sequential &&. Used commonly with if let.
         print("card chosen: \(card)")
         if let chosenIndex: Int = cards.firstIndex(matching: card), !self.cards[chosenIndex].isFaceUp, !cards[chosenIndex].isMatched {
             if let potentialMatchIndex = indexOfOneAndOnlyOneFaceUpCard {
                 if cards[chosenIndex].content == cards[potentialMatchIndex].content {
                     cards[chosenIndex].isMatched = true
                     cards[potentialMatchIndex].isMatched = true
+                    score += max(5-Int(timeOfLastCardPick.timeIntervalSinceNow), 3) // TODO: Needs to be better.
                 }
                 self.cards[chosenIndex].isFaceUp = true
+                score -= (score == 0 ? 0 : 1)
             } else {
                 indexOfOneAndOnlyOneFaceUpCard = chosenIndex
+                timeOfLastCardPick = Date()
             }
         }
     }
