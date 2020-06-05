@@ -8,12 +8,26 @@
 
 import SwiftUI
 
+// All shapes are animatable.
+
 struct Pie: Shape {
     /// Creates a pie shape to use as part of a view.
     
     var startAngle: Angle
     var endAngle: Angle
     var clockWise = false
+    
+    var animatableData: AnimatablePair<Double, Double> {
+        // Connecting the angle vars to the animation.
+        // What part of our shape we want to animate.
+        get {
+            AnimatablePair(startAngle.radians, endAngle.radians)    // Getting the animatable data.
+        }
+        set {
+            startAngle = Angle.radians(newValue.first)
+            endAngle = Angle.radians(newValue.second)
+        }
+    }
     
     // CGRect is the space offered.
     func path(in rect: CGRect) -> Path {

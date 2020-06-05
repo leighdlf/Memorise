@@ -8,31 +8,50 @@
 
 import SwiftUI
 
-struct Cardify: ViewModifier {
+struct Cardify: AnimatableModifier {
     /// General cardifying view that can work on any View.
     
-    var isFaceUp: Bool
+    // Rotation in degrees
+    var rotation: Double
+    
+    init(isFaceUp: Bool) {
+        // Shows the face when it's note face up, rotates to the back otherwise.
+        rotation = isFaceUp ? 0 : 180
+    }
+    
+    var isFaceUp: Bool {
+        rotation < 90
+    }
+    
+    var animatableData: Double {
+        // Double is rotation
+        // Computed property to effectively rename this too rotation. Ref lecture 6.
+        get { return rotation }
+        set { rotation = newValue }
+    }
     
     func body(content: Content) -> some View {
         // Takes in the given content and displays it on a card.
         ZStack {
-            if isFaceUp {
+            Group {
                 RoundedRectangle(cornerRadius: cornerRadius).fill(Color.white)
                 RoundedRectangle(cornerRadius: cornerRadius).stroke(lineWidth: lineWidth)
                 content
-            } else {
-                    RoundedRectangle(cornerRadius: cornerRadius).fill(
-                        LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                ) // TODO: - Should move this fill somewhere else so it's more general.
-                }
             }
+            .opacity(isFaceUp ? 1 : 0)  // Cards are never removed from screen, just hidden.
+            RoundedRectangle(cornerRadius: cornerRadius).fill(
+                LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing)) // TODO: - Should move this fill somewhere else.
+                .opacity(isFaceUp ? 0 : 1)  // Wan' the card coming or going or not?
         }
+        .rotation3DEffect(Angle.degrees(rotation), axis: (0,1,0))
+    }
     
     private let cornerRadius: CGFloat = 10
     private let lineWidth: CGFloat = 3
 }
 
 extension View {
+    /// Extends View so that you can call Cardify with .cardify.
     func cardify(isFaceUp: Bool) -> some View {
         self.modifier(Cardify(isFaceUp: isFaceUp))
     }

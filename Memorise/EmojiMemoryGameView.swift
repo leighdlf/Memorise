@@ -45,7 +45,9 @@ struct EmojiMemoryGameView: View {
             
             Grid(viewModel.cards) { card in
                 CardView(card: card).onTapGesture {
-                    self.viewModel.choose(card: card)
+                    withAnimation(.linear(duration: self.linearAnimationDuration)) {
+                        self.viewModel.choose(card: card)
+                    }
                 }
                 .padding(5)
             }
@@ -53,18 +55,21 @@ struct EmojiMemoryGameView: View {
             .foregroundColor(EmojiMemoryGame.themeColor)
             
             Button(action: {
-                self.viewModel.newGame()
-            }) {
-                Text("New Game")
-                    .fontWeight(.bold)
-                    .padding()
-                    // a2 extra credit for the gradient.
-                    .background(Capsule().fill(
-                        LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing)))
-                    .foregroundColor(Color.white)
-            }
+                withAnimation(.easeInOut) {    // Slow down animation when testing (duration: 2)
+                    self.viewModel.newGame()
+                }
+            }, label: { Text("New Game")
+                .fontWeight(.bold)
+                .padding()
+                // a2 extra credit for the gradient.
+                .background(Capsule().fill(
+                    LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing)))
+                .foregroundColor(Color.white)
+            })
         }
     }
+    
+    private let linearAnimationDuration: Double = 0.5
 }
 
 
@@ -79,18 +84,51 @@ struct CardView: View {
         }
     }
     
+    // This is required as animations only animate things that have already occurred.
+    // Model gives info that we can't animate.
+    // So we create animatedBonusRemaining and startBonusTimeAnimation() to allows us to animate.
+    // When a car is tapped bonus time in the model hasn't yet finished; cant be animated directly from the model.
+    // Yet it still needs to be synced up with the model.
+    @State private var animatedBonusRemaining: Double = 0
+    
+    private func startBonusTimeAnimation() {
+        // Keeps animation of the pie synced with the model when it comes on screen.
+        animatedBonusRemaining = card.bonusRemaining
+        withAnimation(.linear(duration: card.bonusTimeRemaining)) { // Begins animating towards 0.
+            animatedBonusRemaining = 0
+        }
+    }
+    
     // Trick to overcome self. in geometry reader. Just pass geometry.size not whole body. Helper func.
     // Look how it was originally done and changed in lecture 3.
     // All Stack take ViewBuilder? Turns something into some View??
     @ViewBuilder
     private func body(for size: CGSize) -> some View {
-        if card.isFaceUp || !card.isMatched {   // ViewBuilder means it's a list of views, which can be empty if this is false.
+        // ViewBuilder means it's a list of views, which can be empty if this is false.
+        if card.isFaceUp || !card.isMatched {
             ZStack {
-                Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees(110-90), clockWise: true).padding(5).opacity(0.4)
+                Group {
+                    if card.isConsumingBonusTime {  // Only displays if bonusTime is being consumed; when animating. Now can use onAppear.
+                        Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees(-animatedBonusRemaining * 360-90), clockWise: true)
+                            .onAppear() {
+                                self.startBonusTimeAnimation()
+                        }
+                    } else {
+                        // If the cards are matched. It now just matches up with what is in the model; not animating.
+                        Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees(-card.bonusRemaining * 360-90), clockWise: true)
+                    }
+                }
+                .padding(5)
+                .opacity(0.4)
+                .transition(.identity) // TODO: - Look into this. Just appears when it comes and goes?
+                
                 Text(self.card.content)
                     .font(Font.system(size: fontSize(for: size)))
+                    .rotationEffect(Angle.degrees(card.isMatched ? 360 : 0))
+                    .animation(card.isMatched ? Animation.linear(duration: 1).repeatForever(autoreverses: false) : .default)
             }
             .cardify(isFaceUp: card.isFaceUp)
+            .transition(AnyTransition.scale)
         }
     }
     
