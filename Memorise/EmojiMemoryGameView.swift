@@ -30,7 +30,7 @@ import SwiftUI
 // ZStack is a view builder or from one?
 
 struct EmojiMemoryGameView: View {
-    @ObservedObject var viewModel: EmojiMemoryGame
+    @ObservedObject var viewModel: EmojiMemoryGame  // Can't be private as SceneDelegate calls it.
     
     var body: some View {
         VStack(alignment: .center) {
@@ -71,7 +71,7 @@ struct EmojiMemoryGameView: View {
 // Factored out of encapsulation; out of HStack { ForEach }
 // isFaceUp has needs to be initialised when called.
 struct CardView: View {
-    var card: MemoryGame<String>.Card
+    var card: MemoryGame<String>.Card   // Cant be private as it called and set in grid view.
     
     var body: some View {
         GeometryReader { geometry in
@@ -79,41 +79,36 @@ struct CardView: View {
         }
     }
     
-    // Trick to overcome self. in geometry reader. Just pass geometry.size not whole body.
+    // Trick to overcome self. in geometry reader. Just pass geometry.size not whole body. Helper func.
     // Look how it was originally done and changed in lecture 3.
     // All Stack take ViewBuilder? Turns something into some View??
-    func body(for size: CGSize) -> some View {
-        ZStack {
-            if self.card.isFaceUp {
-                RoundedRectangle(cornerRadius: cornerRadius).fill(Color.white)
-                RoundedRectangle(cornerRadius: cornerRadius).stroke(lineWidth: lineWidth)
+    @ViewBuilder
+    private func body(for size: CGSize) -> some View {
+        if card.isFaceUp || !card.isMatched {   // ViewBuilder means it's a list of views, which can be empty if this is false.
+            ZStack {
+                Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees(110-90), clockWise: true).padding(5).opacity(0.4)
                 Text(self.card.content)
-            } else {
-                if !card.isMatched {    // Will not draw cards that have been matched. Will give an empty View.
-                    RoundedRectangle(cornerRadius: cornerRadius).fill(
-                        LinearGradient(gradient: Gradient(colors: [EmojiMemoryGame.themeColor, (EmojiMemoryGame.themeColor == .blue ? .red : .blue)]), startPoint: .topLeading, endPoint: .bottomTrailing))
-                }
+                    .font(Font.system(size: fontSize(for: size)))
             }
+            .cardify(isFaceUp: card.isFaceUp)
         }
-            //.aspectRatio(2/3, contentMode: .fit) // a1q3
-            .font(Font.system(size: fontSize(for: size)))
     }
     
     // Mark: - Drawing Constants
     // Fixes 'magic numbers'.
     // CGFloat needs to defined to get over type inference.
     
-    let cornerRadius: CGFloat = 10
-    let lineWidth: CGFloat = 3
-    let fontScalingFactor: CGFloat = 0.75
-    func fontSize(for size: CGSize) -> CGFloat {
-        min(size.width, size.height) * 0.75 // Sets its own font, better for encapsulation. One liner function is good for simplicity, as sometimes needed
+    private let fontScalingFactor: CGFloat = 0.75
+    private func fontSize(for size: CGSize) -> CGFloat {
+        min(size.width, size.height) * 0.7 // Sets its own font, better for encapsulation. One liner function is good for simplicity, as sometimes needed
     }
 }
 
 // Connects to canvas preview. Only used for development. Creates an EmojiMemoryGame on the fly? Preview doesn't use SceneDelegate?
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiMemoryGameView(viewModel: EmojiMemoryGame())
+        let game = EmojiMemoryGame()
+        game.choose(card: game.cards[0])
+        return EmojiMemoryGameView(viewModel: game)
     }
 }

@@ -30,7 +30,8 @@ class EmojiMemoryGame: ObservableObject {
     static var themeColor = Color.blue
     static var themeName = ""
     
-    static func createMemoryGame() -> MemoryGame<String> {
+    // don't want the view from being able to call this function directly.
+    private static func createMemoryGame() -> MemoryGame<String> {
         let theme = setGameTheme(theme: EmojiGameThemes.allCases.randomElement()!)
         themeColor = theme.color
         themeName = theme.name

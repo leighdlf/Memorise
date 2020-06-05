@@ -10,9 +10,11 @@ import SwiftUI
 
 struct GridLayout {
 /// Divides the size given amongst the count of items given. It can also conform closely to a specified aspect ratio.
-    var size: CGSize
-    var rowCount: Int = 0
-    var columnCount: Int = 0
+    private(set) var size: CGSize
+    private(set) var rowCount: Int = 0
+    private(set) var columnCount: Int = 0
+    // After init these are set. Therefore we don't want others thinking they can be, so privet(set).
+    // Access control indicating to others how this is intended to be used.
     
     init(itemCount: Int, nearAspectRatio desiredAspectRatio: Double = 1, in size: CGSize) {
         self.size = size

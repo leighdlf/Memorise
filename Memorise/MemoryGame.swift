@@ -19,10 +19,12 @@ import Foundation
 // therefore in func choose we flip the cards flips the card directly in the array. In structs only mutating funcs can change self.
 
 struct MemoryGame<CardContent>  where CardContent: Equatable {
-    var cards: Array<Card>
+   
+    // Only the model should be able to change/set this, but others (eg EmojiMemoryGame) should be able to read.
+    private(set) var cards: Array<Card>
     
-    // Gets the index of a card if it is the only one face up.
-    var indexOfOneAndOnlyOneFaceUpCard: Int? {
+    // Gets the index of a card if it is the only one face up. Only model should be able to access.
+    private var indexOfOneAndOnlyOneFaceUpCard: Int? {
         get { cards.indices.filter { cards[$0].isFaceUp }.only }
         set {
             for index in cards.indices {
@@ -32,7 +34,7 @@ struct MemoryGame<CardContent>  where CardContent: Equatable {
     }
     
     // a2q8+9+a2Extra credit along with code in the choose() func. Display of score is in the view.
-    var timeOfLastCardPick: Date = Date()
+    private var timeOfLastCardPick: Date = Date()
     var score: Int = 0
     
     // if let makes this function do nothing if passed a nil.
