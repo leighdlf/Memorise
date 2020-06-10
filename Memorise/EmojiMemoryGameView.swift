@@ -74,7 +74,7 @@ struct EmojiMemoryGameView: View {
 
 
 // Factored out of encapsulation; out of HStack { ForEach }
-// isFaceUp has needs to be initialised when called.
+// isFaceUp needs to be initialised when called.
 struct CardView: View {
     var card: MemoryGame<String>.Card   // Cant be private as it called and set in grid view.
     
